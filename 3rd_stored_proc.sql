@@ -1,11 +1,11 @@
-USE DATAMART;
+USE [DATAMART];
 GO
 
-IF OBJECT_ID('DBO.SP_RUN_HANDSHK_ALUMNI_LOAD') IS NOT NULL
-    DROP PROCEDURE DBO.SP_RUN_HANDSHK_ALUMNI_LOAD;
+IF OBJECT_ID('[DBO].[SP_RUN_HANDSHK_ALUMNI_LOAD]') IS NOT NULL
+    DROP PROCEDURE [DBO].[SP_RUN_HANDSHK_ALUMNI_LOAD];
 GO
 
-CREATE OR ALTER PROCEDURE DBO.SP_RUN_HANDSHK_ALUMNI_LOAD
+CREATE OR ALTER PROCEDURE [DBO].[SP_RUN_HANDSHK_ALUMNI_LOAD]
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -15,11 +15,14 @@ BEGIN
     DECLARE @AlreadyProcessed BIT = 0;
     DECLARE @StartTime DATETIME = GETDATE();
     DECLARE @RowCount INT = 0;
-    DECLARE @Message NVARCHAR(1000) = '';
+    DECLARE @Message NVARCHAR(1000) = N'';
 
     -- Get current and previous term
-    SELECT TOP 1 @CURR_TERM_CD = TERM_CD FROM DATAMART.DBO.DM_CUR_TERM;
-    SELECT TOP 1 @PREV_TERM_CD = TERM_CD FROM DATAMART.DBO.DM_PREV_TERM;
+    SELECT TOP 1 @CURR_TERM_CD = [TERM_CD] 
+    FROM [DATAMART].[DBO].[DM_CUR_TERM];
+
+    SELECT TOP 1 @PREV_TERM_CD = [TERM_CD] 
+    FROM [DATAMART].[DBO].[DM_PREV_TERM];
 
     PRINT '--------------------------------------------------';
     PRINT 'HANDSHAKE Alumni Processing Controller';
@@ -32,8 +35,8 @@ BEGIN
     ----------------------------------------------------------------------
     IF EXISTS (
         SELECT 1 
-        FROM DATAMART.DBO.HANDSHK_ALUMNI_LOAD_LOG 
-        WHERE PREV_TERM_CD = @PREV_TERM_CD
+        FROM [DATAMART].[DBO].[HANDSHK_ALUMNI_LOAD_LOG]
+        WHERE [PREV_TERM_CD] = @PREV_TERM_CD
     )
     BEGIN
         SET @AlreadyProcessed = 1;
@@ -42,8 +45,8 @@ BEGIN
     END
     ELSE IF EXISTS (
         SELECT 1 
-        FROM DATAMART.DBO.HANDSHK_ALUMNI_MASTER 
-        WHERE TERM_CD = @PREV_TERM_CD
+        FROM [DATAMART].[DBO].[HANDSHK_ALUMNI_MASTER]
+        WHERE [TERM_CD] = @PREV_TERM_CD
     )
     BEGIN
         SET @AlreadyProcessed = 1;
@@ -60,27 +63,24 @@ BEGIN
 
         BEGIN TRY
             -- Step 1: Process source data
-            EXEC DATAMART.DBO.SP_PROCESS_HANDSHK_ALUMNI;
+            EXEC [DATAMART].[DBO].[SP_PROCESS_HANDSHK_ALUMNI];
 
             -- Step 2: Load to master table
-            EXEC DATAMART.DBO.SP_LOAD_HANDSHK_ALUMNI_MASTER;
+            EXEC [DATAMART].[DBO].[SP_LOAD_HANDSHK_ALUMNI_MASTER];
 
             -- Get number of rows inserted into master table for this term
             SELECT @RowCount = COUNT(*) 
-            FROM DATAMART.DBO.HANDSHK_ALUMNI_MASTER 
-            WHERE TERM_CD = @PREV_TERM_CD;
+            FROM [DATAMART].[DBO].[HANDSHK_ALUMNI_MASTER]
+            WHERE [TERM_CD] = @PREV_TERM_CD;
 
-            SET @Message = 'Processing completed successfully.';
+            SET @Message = N'Processing completed successfully.';
 
             -- Log success
-            INSERT INTO DATAMART.DBO.HANDSHK_ALUMNI_LOAD_LOG
+            INSERT INTO [DATAMART].[DBO].[HANDSHK_ALUMNI_LOAD_LOG]
             (
-                PREV_TERM_CD,
-                CURR_TERM_CD,
-                EXECUTION_DATE,
-                ROW_COUNT,
-                STATUS,
-                MESSAGE
+                [PREV_TERM_CD],[CURR_TERM_CD],
+                [EXECUTION_DATE],[ROW_COUNT],
+                [STATUS],[MESSAGE]
             )
             VALUES
             (
@@ -94,20 +94,19 @@ BEGIN
 
             PRINT 'Processing completed successfully for term ' + @PREV_TERM_CD + '.';
             PRINT 'Rows inserted: ' + CAST(@RowCount AS VARCHAR(10));
-
         END TRY
         BEGIN CATCH
             SET @Message = ERROR_MESSAGE();
 
             -- Log failure
-            INSERT INTO DATAMART.DBO.HANDSHK_ALUMNI_LOAD_LOG
+            INSERT INTO [DATAMART].[DBO].[HANDSHK_ALUMNI_LOAD_LOG]
             (
-                PREV_TERM_CD,
-                CURR_TERM_CD,
-                EXECUTION_DATE,
-                ROW_COUNT,
-                STATUS,
-                MESSAGE
+                [PREV_TERM_CD],
+                [CURR_TERM_CD],
+                [EXECUTION_DATE],
+                [ROW_COUNT],
+                [STATUS],
+                [MESSAGE]
             )
             VALUES
             (
