@@ -1,0 +1,10 @@
+STUDENT_DEGREE_CD,STUDENT_DEGREE_NAME,CALC_CLS_DESC,STUDENT_LEVEL_CD
+CCEX,Co-Op Career Experience Cert,Freshman,2U
+CCEX,Co-Op Career Experience Cert,Sophomore,2U
+DCEP,Doctor of Clin Exercise Physio,Professional 2,2P
+DCEP,Doctor of Clin Exercise Physio,Professional 1,2P
+EOTD,Doctor of Occup Ther: EntryLvl,Professional 1,2P
+EOTD,Doctor of Occup Ther: EntryLvl,Professional 3,2P
+EOTD,Doctor of Occup Ther: EntryLvl,Professional 2,2P
+EOTD,Doctor of Occup Ther: EntryLvl,Professional 4,2P
+NCRDT,Non Credit, ,2N
